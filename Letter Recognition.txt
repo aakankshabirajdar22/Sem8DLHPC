@@ -1,0 +1,35 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Dense
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+column_names=['letter','xbox','ybox','width','high','opix','x-bar','y-bar','xybar','x2bar','y2bar','x2ybar','xy2bar','x-ege','y-ege','xegvy','yegvx']
+
+df=pd.read_csv('/content/drive/MyDrive/letter-recognition.csv',header=None,names=column_names)
+
+X=df.drop('letter',axis=1)
+y=df['letter']
+
+X_train,X_test,Y_train,Y_test=train_test_split(X,y,test_size=0.2,random_state=42)
+
+num_classes=len(np.unique(y))
+Y_train=pd.get_dummies(Y_train)
+Y_test=pd.get_dummies(Y_test)
+
+model=Sequential()
+model.add(Dense(64, input_shape=(16,),activation='relu'))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(num_classes,activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
+
+model.summary()
+model.fit(X_train,Y_train,epochs=100,batch_size=32,validation_data=(X_test,Y_test))
+
+loss,accuracy=model.evaluate(X_test,Y_test)
+print("Test Loss",loss)
+print("Test Accuracy",accuracy)
